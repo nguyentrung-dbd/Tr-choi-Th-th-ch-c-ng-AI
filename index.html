@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thử Thách Bẻ Khóa Prompt</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            background: #ffffff;
+            color: #333;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2a5298;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .score-board {
+            text-align: center;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 20px;
+        }
+        .question-box {
+            background: #f9f9f9;
+            border-left: 5px solid #2a5298;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            background: #f1f2f6;
+            border: 2px solid #dcdde1;
+            padding: 12px 15px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            background: #dfe4ea;
+            border-color: #2a5298;
+        }
+        .option-btn.correct {
+            background: #2ed573 !important;
+            color: white;
+            border-color: #2ed573;
+        }
+        .option-btn.wrong {
+            background: #ff4757 !important;
+            color: white;
+            border-color: #ff4757;
+        }
+        #next-btn {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #next-btn:hover {
+            background: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>🤖 Thử Thách Bẻ Khóa Prompt AI</h1>
+    <div class="score-board" id="score">Điểm số: 0 | Thử thách: 1/3</div>
+    
+    <div id="game-content">
+        <div class="question-box" id="challenge-desc">
+            <!-- Mô tả thử thách sẽ hiện ở đây -->
+        </div>
+        <div class="options-container" id="options">
+            <!-- Các lựa chọn prompt sẽ hiện ở đây -->
+        </div>
+    </div>
+
+    <button id="next-btn" onclick="nextQuestion()">Thử thách tiếp theo ➡️</button>
+</div>
+
+<script>
+    const questions = [
+        {
+            desc: "🎯 **Thử thách 1:** Bạn muốn nhờ AI giải thích khái niệm 'Áp suất chất lỏng' bằng 3 ý chính dễ hiểu như một gia sư thân thiện. Đâu là Prompt chuẩn xác nhất?",
+            options: [
+                { text: "Giúp tôi bài vật lý áp suất.", correct: false },
+                { text: "Hãy đóng vai gia sư Vật lý lớp 8 thân thiện, giải thích khái niệm Áp suất chất lỏng bằng 3 ý chính ngắn gọn kèm 1 ví dụ thực tế.", correct: true },
+                { text: "Viết tất cả mọi thứ về áp suất chất lỏng cho tôi.", correct: false }
+            ]
+        },
+        {
+            desc: "🎯 **Thử thách 2:** Bạn cần AI tóm tắt bài học lịch sử thành các nhánh để làm sơ đồ tư duy. Đâu là Prompt thông minh nhất?",
+            options: [
+                { text: "Tóm tắt bài này đi.", correct: false },
+                { text: "Hãy đọc văn bản sau và tóm tắt thành cấu trúc các nhánh chính (ý trung tâm, nhánh lớn, nhánh nhỏ) để tôi làm mindmap:\n[Dán nội dung]", correct: true },
+                { text: "Vẽ cho tôi một cái hình sơ đồ tư duy ngay lập tức.", correct: false }
+            ]
+        },
+        {
+            desc: "🎯 **Thử thách 3:** Bạn muốn luyện hội thoại tiếng Anh với AI theo chủ đề 'Sở thích mùa hè' ở mức độ học sinh THCS. Bạn sẽ ra lệnh thế nào?",
+            options: [
+                { text: "Nói chuyện tiếng Anh với tôi đi.", correct: false },
+                { text: "Hãy đóng vai người bạn nước ngoài, trò chuyện bằng tiếng Anh với tôi về chủ đề Sở thích mùa hè, dùng từ vựng đơn giản cho học sinh THCS và sửa lỗi giúp tôi.", correct: true },
+                { text: "Dịch cho tôi đoạn văn này sang tiếng Anh.", correct: false }
+            ]
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById("challenge-desc").innerHTML = q.desc;
+        document.getElementById("score").innerText = `Điểm số: ${score} | Thử thách: ${currentQuestion + 1}/${questions.length}`;
+        
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(btn, opt.correct);
+            optionsContainer.appendChild(btn);
+        });
+        document.getElementById("next-btn").style.display = "none";
+    }
+
+    function selectOption(button, isCorrect) {
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach(btn => btn.disabled = true); // Khóa các nút sau khi chọn
+
+        if (isCorrect) {
+            button.classList.add("correct");
+            score += 10;
+        } else {
+            button.classList.add("wrong");
+            // Hiển thị đáp án đúng để học sinh học hỏi
+            buttons.forEach((btn, index) => {
+                if (questions[currentQuestion].options[index].correct) {
+                    btn.classList.add("correct");
+                }
+            });
+        }
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            document.getElementById("game-content").innerHTML = `
+                <h2 style="text-align: center; color: #2a5298;">🎉 Chúc mừng bạn đã hoàn thành xuất sắc!</h2>
+                <p style="text-align: center; font-size: 18px;">Tổng điểm của bạn là: <b>${score} điểm</b></p>
+                <p style="text-align: center; color: #555;">Bạn đã sẵn sàng để trở thành một "Nhà thiết kế Prompt" thực thụ trên không gian số!</p>
+            `;
+            document.getElementById("next-btn").style.display = "none";
+            document.getElementById("score").style.display = "none";
+        }
+    }
+
+    // Khởi chạy game lần đầu
+    loadQuestion();
+</script>
+
+</body>
+</html>
